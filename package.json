@@ -23,22 +23,23 @@
   },
   "homepage": "http://mobxjs.github.com/mobx",
   "devDependencies": {
+    "@types/moment": "^2.13.0",
     "@types/react": "^15.0.39",
     "@types/react-dom": "^15.5.1",
     "awesome-typescript-loader": "^3.2.1",
-    "extract-text-webpack-plugin": "^3.0.2",
+    "css-loader": "^0.28.7",
+    "style-loader": "^0.19.0",
     "typescript": "^2.4.2",
     "webpack": "^3.0.0",
     "webpack-dev-server": "^2.6.1"
   },
   "dependencies": {
-    "css-loader": "^0.28.7",
     "mobx": "^3.2.1",
     "mobx-react": "^4.2.2",
     "mobx-react-devtools": "^4.2.15",
+    "moment": "^2.19.1",
     "react": "^15.6.1",
     "react-dom": "^15.6.1",
-    "semantic-ui-react": "^0.75.1",
-    "style-loader": "^0.19.0"
+    "semantic-ui-react": "^0.75.1"
   }
 }

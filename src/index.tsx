@@ -1,8 +1,9 @@
 import * as React from 'react';
 import * as ReactDOM from 'react-dom';
-import { observable } from 'mobx';
+import { observable, computed } from 'mobx';
 import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
+import * as moment from 'moment'
 import './styles.css';
 import { Input, Header, Grid, Segment, Dropdown, Button, Table, Form } from 'semantic-ui-react';
 
@@ -10,18 +11,18 @@ import { Input, Header, Grid, Segment, Dropdown, Button, Table, Form } from 'sem
 var CurrencyPairs: string[] = ['EURUSD', 'EURPLN', 'EURGBP', 'CHFUSD'];
 
 
-enum BS {
-    Buy, Sell
-}
-
 
 class Trade {
     pair: string;
-    amount1: Number;
-    amount2: Number;
-    rate: Number;
-    tradeDate: Date;
-    buyOrSell: BS;
+    @observable amount1: Number;
+    @observable amount2: Number;
+    @observable rate: Number;
+    @observable tradeDate: Date = new Date();
+
+    @computed get tradeCalendarDate() {
+        console.log(this.tradeDate.toISOString())
+        return this.tradeDate.toISOString().split('T')[0];
+    }
 }
 
 
@@ -31,20 +32,25 @@ class AppState {
 
     @observable trades: Trade[] = [];
 
+
+
     constructor() {
     }
 
 }
 
-
-
-class TradeInputComponent extends React.Component<{ appState: AppState }, {}> {
-    updateProperty(key, value) {
-        this.props.appState.tradeToAdd[key] = value
+class TradeInputAndOutputScreen extends React.Component<{appState: AppState}, {}>{
+    constructor() {
+        super();
+        this.changeTradeDate = this.changeTradeDate.bind(this);
     }
 
-    bindToTrade(propName) {
-        return (event) => { this.props.appState.tradeToAdd[propName] = event.target.value; }
+    changeTradeDate(event) {
+        this.props.appState.tradeToAdd.tradeDate = moment.utc(event.target.value, 'YYYY-MM-DD').toDate();
+    }
+
+    changeCurrencyPair(event) {
+        this.props.appState.tradeToAdd.pair = event.target.value;
     }
 
 
@@ -52,27 +58,7 @@ class TradeInputComponent extends React.Component<{ appState: AppState }, {}> {
         return (
             <div className='trade-app'>
                 <Header size='huge'>Trade Input</Header>
-                <Form className='trade-input-form'>
-                    <Grid columns={3} stackable>
-                        <Grid.Column>
-                            <select className='trade-input-form--currency-pair' required onChange={this.bindToTrade('pair')}>
-                            <option selected value='' disabled>Currency Pair</option>
-                                {CurrencyPairs.map((el) => { return <option value={el}>{el}</option>})}
-                            </select>
-                        </Grid.Column>
-                        <Grid.Column>
-                            <RateComponent model={this.props.appState.tradeToAdd} />
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Input className="trade-input-form--trade-date" required type='date' placeholder='Trade Date'  onChange={this.bindToTrade('tradeDate')} />
-                        </Grid.Column>
-                    </Grid>
-                    <Grid columns={1} stackable>
-                        <Grid.Column>
-                            <Button floated='right' onClick={() => { }}>Add Trade</Button>
-                        </Grid.Column>
-                    </Grid>
-                </Form>
+                <TradeInputComponent model={this.props.appState.tradeToAdd} rateComponentProperties={this.props.appState.tradeToAdd}/>
                 <p>{this.props.appState.tradeToAdd.pair}</p>
 
                 <Header size='huge'>Trade History</Header>
@@ -81,23 +67,91 @@ class TradeInputComponent extends React.Component<{ appState: AppState }, {}> {
             </div>
         );
     }
+}
+
+
+@observer
+class TradeInputComponent extends React.Component<{ model: {tradeDate: Date, tradeCalendarDate: string, pair: string}, rateComponentProperties: RateComponentProperties}, {}> {
+    constructor() {
+        super();
+        this.changeTradeDate = this.changeTradeDate.bind(this);
+    }
+
+    changeTradeDate(event) {
+        this.props.model.tradeDate = moment.utc(event.target.value, 'YYYY-MM-DD').toDate();
+    }
+
+    changeCurrencyPair(event) {
+        this.props.model.pair = event.target.value;
+    }
+
+
+    render() {
+        return (
+
+                <Form className='trade-input-form'>
+                    <Grid columns={3} stackable>
+                        <Grid.Column>
+                            <select className='trade-input-form--currency-pair' required defaultValue=''>
+                                <option disabled value=''>Currency Pair</option>
+                                {CurrencyPairs.map((el) => { return <option value={el}>{el}</option> })}
+                            </select>
+                        </Grid.Column>
+                        <Grid.Column>
+                            <RateComponent model={this.props.rateComponentProperties} />
+                        </Grid.Column>
+                        <Grid.Column>
+                            <Input className="trade-input-form--trade-date" required type='date' placeholder='Trade Date' value={this.props.model.tradeCalendarDate} onChange={this.changeTradeDate} />
+                        </Grid.Column>
+                    </Grid>
+                    <Grid columns={1} stackable>
+                        <Grid.Column>
+                            <Button floated='right' onClick={() => { }}>Add Trade</Button>
+                        </Grid.Column>
+                    </Grid>
+                </Form>
+              
+        );
+    }
 
 };
+type RateComponentProperties = { amount1: Number, rate: Number, amount2: Number };
+@observer
+class RateComponent extends React.Component<{ model:  RateComponentProperties}, {}> {
+
+    private changeAmount1(event) {
+        let am1: Number = new Number(event.target.value);
+        this.props.model.amount1 = am1.valueOf();
+        if (this.props.model.rate) {
+            this.props.model.amount2 = new Number((am1.valueOf() * this.props.model.rate.valueOf()).toFixed(4));
+        }
+    }
 
 
-class RateComponent extends React.Component<{ model: { amount1: Number, rate: Number, amount2: Number } }, {}> {
+    private changeAmount2(event) {
+        let am2: Number = new Number(event.target.value);
+        this.props.model.amount2 = am2.valueOf();
+        if (this.props.model.rate) {
+            this.props.model.amount1 = new Number((am2.valueOf() / this.props.model.rate.valueOf()).toFixed(4));
+        }
+    }
 
-    bindToModel(propName) {
-        return (event) => { this.props.model[propName] = event.target.value; }
+
+    private changeRate(event) {
+        let rate: Number = new Number(event.target.value);
+        this.props.model.rate = rate.valueOf();
+        if (this.props.model.amount1) {
+            this.props.model.amount2 = new Number((this.props.model.amount1.valueOf() * rate.valueOf()).toFixed(4));
+        }
     }
 
 
     render() {
         return (
             <div className='rate-component'>
-                <Input type='number' required className='rate-component__amount1' placeholder='Amount1' />
-                <Input type='number' required className='rate-component__rate' placeholder='Rate' />
-                <Input type='number' required className='rate-component__amount2' placeholder='Amount2' />
+                <Input type='number' required className='rate-component__amount1' min='0.01' step='0.01' placeholder='Amount1' value={this.props.model.amount1} onChange={this.changeAmount1.bind(this)} />
+                <Input type='number' required className='rate-component__rate' min='0.01' step='0.01' placeholder='Rate' value={this.props.model.rate} onChange={this.changeRate.bind(this)} />
+                <Input type='number' required className='rate-component__amount2' min='0.01' step='0.01' placeholder='Amount2' value={this.props.model.amount2} onChange={this.changeAmount2.bind(this)} />
             </div>
         );
     }
@@ -139,4 +193,4 @@ class TradesTable extends React.Component<{ model: { trades: Trade[] } }, {}> {
 
 
 const appState = new AppState();
-ReactDOM.render(<TradeInputComponent appState={appState} />, document.getElementById('root'));
+ReactDOM.render(<TradeInputAndOutputScreen appState={appState} />, document.getElementById('root'));
