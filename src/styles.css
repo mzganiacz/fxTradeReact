@@ -1,0 +1,25 @@
+.trade-app .rate-component .rate-component__amount1 {
+  width: 33%;
+}
+.trade-app .rate-component .rate-component__amount2 {
+  width: 33%;
+}
+.trade-app .rate-component .rate-component__rate {
+  width: 34%;
+}
+
+
+.trade-app .rate-component .rate-component__amount1 input {
+  
+  border-top-right-radius: 0px;
+  border-bottom-right-radius: 0px;
+  border-right: 0px;
+}
+.trade-app .rate-component .rate-component__amount2 input {
+  border-top-left-radius: 0px;
+  border-bottom-left-radius: 0px;
+  border-left: 0px;
+}
+.trade-app .rate-component .rate-component__rate input{
+  border-radius: 0px;
+}
