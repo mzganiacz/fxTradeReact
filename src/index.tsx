@@ -5,7 +5,7 @@ import { observer } from 'mobx-react';
 import DevTools from 'mobx-react-devtools';
 import * as moment from 'moment'
 import './styles.css';
-import { Input, Header, Grid, Segment, Dropdown, Button, Table, Form } from 'semantic-ui-react';
+import { Input, Header, Grid, Segment, Dropdown, Button, Table, Form, Label } from 'semantic-ui-react';
 
 
 var CurrencyPairs: string[] = ['EURUSD', 'EURPLN', 'EURGBP', 'CHFUSD'];
@@ -13,14 +13,13 @@ var CurrencyPairs: string[] = ['EURUSD', 'EURPLN', 'EURGBP', 'CHFUSD'];
 
 
 class Trade {
-    pair: string;
-    @observable amount1: Number;
-    @observable amount2: Number;
-    @observable rate: Number;
+    @observable pair: string = '';
+    @observable amount1: Number = 0;
+    @observable amount2: Number = 0;
+    @observable rate: Number = 0;
     @observable tradeDate: Date = new Date();
 
     @computed get tradeCalendarDate() {
-        console.log(this.tradeDate.toISOString())
         return this.tradeDate.toISOString().split('T')[0];
     }
 }
@@ -32,14 +31,21 @@ class AppState {
 
     @observable trades: Trade[] = [];
 
+    public addTrade(){
+        this.trades.push(this.tradeToAdd);
+        this.tradeToAdd = new Trade();
+    }
+
 
 
     constructor() {
+        this.addTrade = this.addTrade.bind(this);
+
     }
 
 }
-
-class TradeInputAndOutputScreen extends React.Component<{appState: AppState}, {}>{
+@observer
+class TradeInputAndOutputScreen extends React.Component<{ appState: AppState }, {}>{
     constructor() {
         super();
         this.changeTradeDate = this.changeTradeDate.bind(this);
@@ -58,7 +64,7 @@ class TradeInputAndOutputScreen extends React.Component<{appState: AppState}, {}
         return (
             <div className='trade-app'>
                 <Header size='huge'>Trade Input</Header>
-                <TradeInputComponent model={this.props.appState.tradeToAdd} rateComponentProperties={this.props.appState.tradeToAdd}/>
+                <TradeInputComponent model={this.props.appState.tradeToAdd} rateComponentProperties={this.props.appState.tradeToAdd} addTrade={this.props.appState.addTrade} />
                 <p>{this.props.appState.tradeToAdd.pair}</p>
 
                 <Header size='huge'>Trade History</Header>
@@ -71,10 +77,11 @@ class TradeInputAndOutputScreen extends React.Component<{appState: AppState}, {}
 
 
 @observer
-class TradeInputComponent extends React.Component<{ model: {tradeDate: Date, tradeCalendarDate: string, pair: string}, rateComponentProperties: RateComponentProperties}, {}> {
+class TradeInputComponent extends React.Component<{ model: { tradeDate: Date, tradeCalendarDate: string, pair: string }, rateComponentProperties: RateComponentProperties, addTrade: ()=>void }, {}> {
     constructor() {
         super();
         this.changeTradeDate = this.changeTradeDate.bind(this);
+        this.changeCurrencyPair = this.changeCurrencyPair.bind(this);
     }
 
     changeTradeDate(event) {
@@ -88,36 +95,37 @@ class TradeInputComponent extends React.Component<{ model: {tradeDate: Date, tra
 
     render() {
         return (
-
-                <Form className='trade-input-form'>
-                    <Grid columns={3} stackable>
-                        <Grid.Column>
-                            <select className='trade-input-form--currency-pair' required defaultValue=''>
-                                <option disabled value=''>Currency Pair</option>
-                                {CurrencyPairs.map((el) => { return <option value={el}>{el}</option> })}
-                            </select>
-                        </Grid.Column>
-                        <Grid.Column>
-                            <RateComponent model={this.props.rateComponentProperties} />
-                        </Grid.Column>
-                        <Grid.Column>
-                            <Input className="trade-input-form--trade-date" required type='date' placeholder='Trade Date' value={this.props.model.tradeCalendarDate} onChange={this.changeTradeDate} />
-                        </Grid.Column>
-                    </Grid>
-                    <Grid columns={1} stackable>
-                        <Grid.Column>
-                            <Button floated='right' onClick={() => { }}>Add Trade</Button>
-                        </Grid.Column>
-                    </Grid>
-                </Form>
-              
+            <Form className='trade-input-form'>
+                <Grid columns={3} stackable>
+                    <Grid.Column>
+                        <label>Currency Pair</label>
+                        <select className='trade-input-form--currency-pair' required value={this.props.model.pair} onChange={this.changeCurrencyPair}>
+                            <option value=''>Currency Pair</option>
+                            {CurrencyPairs.map((el, i) => { return <option key={i} value={el}>{el}</option> })}
+                        </select>
+                    </Grid.Column>
+                    <Grid.Column>
+                        <RateComponent model={this.props.rateComponentProperties} />
+                    </Grid.Column>
+                    <Grid.Column>
+                        <label>Trade Date</label>
+                        <Input className="trade-input-form--trade-date" required type='date' placeholder='Trade Date' value={this.props.model.tradeCalendarDate} onChange={this.changeTradeDate} />
+                    </Grid.Column>
+                </Grid>
+                <Grid columns={1} stackable>
+                    <Grid.Column>
+                        <Button floated='right' type='reset' onClick={this.props.addTrade}>Add Trade</Button>
+                    </Grid.Column>
+                </Grid>
+            </Form>
         );
     }
 
 };
 type RateComponentProperties = { amount1: Number, rate: Number, amount2: Number };
+
 @observer
-class RateComponent extends React.Component<{ model:  RateComponentProperties}, {}> {
+class RateComponent extends React.Component<{ model: RateComponentProperties }, {}> {
 
     private changeAmount1(event) {
         let am1: Number = new Number(event.target.value);
@@ -149,6 +157,11 @@ class RateComponent extends React.Component<{ model:  RateComponentProperties}, 
     render() {
         return (
             <div className='rate-component'>
+                <div className='rate-component--labels'>
+                <div><label>Amount 1</label></div>
+                <div><label>Rate</label></div>
+                <div><label>Amount 2</label></div>
+                </div>
                 <Input type='number' required className='rate-component__amount1' min='0.01' step='0.01' placeholder='Amount1' value={this.props.model.amount1} onChange={this.changeAmount1.bind(this)} />
                 <Input type='number' required className='rate-component__rate' min='0.01' step='0.01' placeholder='Rate' value={this.props.model.rate} onChange={this.changeRate.bind(this)} />
                 <Input type='number' required className='rate-component__amount2' min='0.01' step='0.01' placeholder='Amount2' value={this.props.model.amount2} onChange={this.changeAmount2.bind(this)} />
@@ -175,13 +188,13 @@ class TradesTable extends React.Component<{ model: { trades: Trade[] } }, {}> {
                     </Table.Row>
                 </Table.Header>
                 <Table.Body>
-                    {this.props.model.trades.map((el: Trade) => {
-                        return <Table.Row>
-                            <Table.Cell>{el.pair}</Table.Cell>
-                            <Table.Cell>{el.amount1}</Table.Cell>
-                            <Table.Cell>{el.rate}</Table.Cell>
-                            <Table.Cell>{el.amount2}</Table.Cell>
-                            <Table.Cell>{el.tradeDate}</Table.Cell>
+                    {this.props.model.trades.map((el: Trade, i) => {
+                        return <Table.Row key={i}>
+                            <Table.Cell>{el.pair.toString()}</Table.Cell>
+                            <Table.Cell>{el.amount1.toString()}</Table.Cell>
+                            <Table.Cell>{el.rate.toString()}</Table.Cell>
+                            <Table.Cell>{el.amount2.toString()}</Table.Cell>
+                            <Table.Cell>{moment(el.tradeDate).format('L')}</Table.Cell>
                         </Table.Row>
                     })}
                 </Table.Body>

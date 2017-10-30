@@ -6,6 +6,14 @@
   width: 100%;
 }
 
+.rate-component--labels div{
+  float:left;
+  width: 33%;
+}
+.rate-component--labels div:nth-child(2){
+  width: 34%;
+}
+
 .trade-app .rate-component .rate-component__amount1 {
   width: 33%;
 }
