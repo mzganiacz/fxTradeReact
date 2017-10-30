@@ -55,8 +55,8 @@ class TradeInputComponent extends React.Component<{ appState: AppState }, {}> {
                 <Form className='trade-input-form'>
                     <Grid columns={3} stackable>
                         <Grid.Column>
-                            <select required onChange={this.bindToTrade('pair')}>
-                            <option selected></option>
+                            <select className='trade-input-form--currency-pair' required onChange={this.bindToTrade('pair')}>
+                            <option selected value='' disabled>Currency Pair</option>
                                 {CurrencyPairs.map((el) => { return <option value={el}>{el}</option>})}
                             </select>
                         </Grid.Column>
@@ -64,7 +64,7 @@ class TradeInputComponent extends React.Component<{ appState: AppState }, {}> {
                             <RateComponent model={this.props.appState.tradeToAdd} />
                         </Grid.Column>
                         <Grid.Column>
-                            <Input required type='date' style={{ width: '100%' }} focus placeholder='TradeDate' />
+                            <Input className="trade-input-form--trade-date" required type='date' placeholder='Trade Date'  onChange={this.bindToTrade('tradeDate')} />
                         </Grid.Column>
                     </Grid>
                     <Grid columns={1} stackable>

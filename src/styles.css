@@ -1,3 +1,11 @@
+.trade-app{
+  padding: 10px;
+}
+
+.trade-input-form--trade-date {
+  width: 100%;
+}
+
 .trade-app .rate-component .rate-component__amount1 {
   width: 33%;
 }
