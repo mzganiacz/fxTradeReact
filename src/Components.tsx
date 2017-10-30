@@ -59,7 +59,7 @@ class TradeInputComponent extends React.Component<{ model: { tradeDate: Date, tr
                 <Grid columns={3} stackable>
                     <Grid.Column>
                         <label>Currency Pair</label>
-                        <select className='trade-input-form--currency-pair' required value={this.props.model.pair} onChange={this.changeCurrencyPair}>
+                        <select className='trade-input-form__currency-pair' required value={this.props.model.pair} onChange={this.changeCurrencyPair}>
                             <option value=''>Currency Pair</option>
                             {CurrencyPairs.map((el, i) => { return <option key={i} value={el}>{el}</option> })}
                         </select>
@@ -69,12 +69,12 @@ class TradeInputComponent extends React.Component<{ model: { tradeDate: Date, tr
                     </Grid.Column>
                     <Grid.Column>
                         <label>Trade Date</label>
-                        <Input className="trade-input-form--trade-date" required type='date' placeholder='Trade Date' value={this.props.model.tradeCalendarDate} onChange={this.changeTradeDate} />
+                        <Input className="trade-input-form__trade-date" required type='date' placeholder='Trade Date' value={this.props.model.tradeCalendarDate} onChange={this.changeTradeDate} />
                     </Grid.Column>
                 </Grid>
                 <Grid columns={1} stackable>
                     <Grid.Column>
-                        <Button floated='right' type='reset' onClick={this.props.addTrade}>Add Trade</Button>
+                        <Button floated='right' type='submit' onClick={this.props.addTrade}>Add Trade</Button>
                     </Grid.Column>
                 </Grid>
             </Form>
@@ -115,7 +115,7 @@ class RateComponent extends React.Component<{ model: RateComponentProperties }, 
     render() {
         return (
             <div className='rate-component'>
-                <div className='rate-component--labels'>
+                <div className='rate-component__labels'>
                 <div><label>Amount 1</label></div>
                 <div><label>Rate</label></div>
                 <div><label>Amount 2</label></div>
